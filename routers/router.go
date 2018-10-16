@@ -8,12 +8,16 @@
 package routers
 
 import (
-	"github.com/cdvr1993/deployment-manager/controllers"
-
 	"github.com/astaxie/beego"
+	"github.com/cdvr1993/deployment-manager/controllers"
+	"github.com/cdvr1993/deployment-manager/services"
 )
 
-func init() {
+type ServiceManager struct {
+	userService services.IUserService
+}
+
+func InitRouter(m ServiceManager) {
 	ns := beego.NewNamespace("/v1",
 		beego.NSNamespace("/object",
 			beego.NSInclude(
@@ -22,9 +26,18 @@ func init() {
 		),
 		beego.NSNamespace("/user",
 			beego.NSInclude(
-				&controllers.UserController{},
+				&controllers.UserController{
+					UserService: m.userService,
+				},
 			),
 		),
 	)
 	beego.AddNamespace(ns)
+}
+
+func InjectServices() {
+	// Used as a dependency injection
+	InitRouter(ServiceManager{
+		userService: services.NewUserService(),
+	})
 }

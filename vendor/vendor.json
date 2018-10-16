@@ -43,6 +43,18 @@
 			"revisionTime": "2018-07-31T13:18:48Z"
 		},
 		{
+			"checksumSHA1": "3pGLaor7JnvIIy7dZvG7cbAlM9w=",
+			"path": "github.com/astaxie/beego/migration",
+			"revision": "053a075344c118a5cc41981b29ef612bb53d20ca",
+			"revisionTime": "2018-07-31T13:18:48Z"
+		},
+		{
+			"checksumSHA1": "skbVWA35zzQ+Yml14zyULI1OPic=",
+			"path": "github.com/astaxie/beego/orm",
+			"revision": "053a075344c118a5cc41981b29ef612bb53d20ca",
+			"revisionTime": "2018-07-31T13:18:48Z"
+		},
+		{
 			"checksumSHA1": "EDaMYv6yHO6Xu9J8loeGIUOvGoE=",
 			"path": "github.com/astaxie/beego/session",
 			"revision": "053a075344c118a5cc41981b29ef612bb53d20ca",

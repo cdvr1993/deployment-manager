@@ -1,3 +1,4 @@
 deployment-manager
 *.tmp
 swagger
+routers/commentsRouter_controllers.go
