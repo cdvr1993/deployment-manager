@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -17,12 +15,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func init() {
-	_, file, _, _ := runtime.Caller(1)
-	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	beego.TestBeegoInit(apppath)
-}
-
 type MethodTester struct {
 	Body   string
 	Method string
@@ -31,6 +23,8 @@ type MethodTester struct {
 }
 
 func TestEndpointsAreWorking(t *testing.T) {
+	beego.BeeApp = beego.NewApp()
+
 	user := models.User{
 		Id:    1,
 		Name:  "Cristian",
