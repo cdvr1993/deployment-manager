@@ -35,3 +35,11 @@ func ErrorUserEmailExists(email string) IServiceError {
 		status: 400,
 	}
 }
+
+func ErrorUserNotFound(email string) IServiceError {
+	return ServiceError{
+		id:     "UserNotFound",
+		msg:    fmt.Sprintf("User with email '%s' doesn't exist", email),
+		status: 404,
+	}
+}

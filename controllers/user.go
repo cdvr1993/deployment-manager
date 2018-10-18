@@ -40,22 +40,17 @@ func (u *UserController) GetAll() {
 }
 
 // @Title Get
-// @Description get user by uid
-// @Param	uid		path 	string	true		"The key for staticblock"
+// @Description get user by email
+// @Param	email		path 	string	true		"The key for staticblock"
 // @Success 200 {object} models.User
-// @Failure 403 :uid is empty
-// @router /:uid [get]
-func (u *UserController) Get() {
-	// uid := u.GetString(":uid")
-	// if uid != "" {
-	// 	user, err := models.GetUser(uid)
-	// 	if err != nil {
-	// 		u.Data["json"] = err.Error()
-	// 	} else {
-	// 		u.Data["json"] = user
-	// 	}
-	// }
-	u.ServeJSON()
+// @Failure 403 :email is empty
+// @router /:email [get]
+func (c *UserController) Get() {
+	defer services.ServeJson(&c.Controller)
+
+	email := c.GetString(":email")
+	user := c.UserService.GetUser(email)
+	c.Data["json"] = map[string]models.User{"data": user}
 }
 
 // @Title Update
