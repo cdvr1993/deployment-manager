@@ -18,6 +18,12 @@ type ServiceManager struct {
 	UserService  services.IUserService
 }
 
+// @APIVersion 1.0.0
+// @Title Deployment manager API
+// @Description Management of your projects and deployments
+// @Contact cdvr1993@gmail.com
+// @License MIT
+// @LicenseUrl https://opensource.org/licenses/MIT
 func InitRouter(m ServiceManager) {
 	ns := beego.NewNamespace("/v1",
 		beego.NSNamespace("/group",
