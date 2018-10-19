@@ -14,11 +14,19 @@ import (
 )
 
 type ServiceManager struct {
-	UserService services.IUserService
+	GroupService services.IGroupService
+	UserService  services.IUserService
 }
 
 func InitRouter(m ServiceManager) {
 	ns := beego.NewNamespace("/v1",
+		beego.NSNamespace("/group",
+			beego.NSInclude(
+				&controllers.GroupController{
+					GroupService: m.GroupService,
+				},
+			),
+		),
 		beego.NSNamespace("/user",
 			beego.NSInclude(
 				&controllers.UserController{
@@ -33,6 +41,7 @@ func InitRouter(m ServiceManager) {
 func InjectServices() {
 	// Used as a dependency injection
 	InitRouter(ServiceManager{
-		UserService: services.NewUserService(),
+		GroupService: services.NewGroupService(),
+		UserService:  services.NewUserService(),
 	})
 }

@@ -49,7 +49,7 @@ func (c *UserController) Get() {
 	defer services.ServeJson(&c.Controller)
 
 	email := c.GetString(":email")
-	user := c.UserService.GetUser(email)
+	user := c.UserService.GetUserByEmail(email)
 	c.Data["json"] = map[string]models.User{"data": user}
 }
 

@@ -19,24 +19,24 @@ func init() {
 
 // Run the migrations
 func (m *UserGroups_20181016_145311) Up() {
-	// use m.SQL("CREATE TABLE ...") to make schema update
 	m.SQL(`
 		create table user (
 			id int primary key auto_increment,
 			name varchar(128) not null,
-			email varchar(128) not null
+			email varchar(128) not null unique
 		)
 	`)
 
 	m.SQL(`
 		create table .group (
 			id int primary key auto_increment,
-			name varchar(128) not null
+			name varchar(128) not null unique
 		)
 	`)
 
 	m.SQL(`
 		create table user_group (
+			id int primary key auto_increment,
 			user_id int not null,
 			group_id int not null,
 			foreign key (user_id) references user(id),
@@ -47,7 +47,6 @@ func (m *UserGroups_20181016_145311) Up() {
 
 // Reverse the migrations
 func (m *UserGroups_20181016_145311) Down() {
-	// use m.SQL("DROP TABLE ...") to reverse schema update
 	m.SQL("drop table user_group")
 	m.SQL("drop table user")
 	m.SQL("drop table group")

@@ -6,8 +6,9 @@ import (
 )
 
 type IUserService interface {
-	AddUser(u *models.User)
-	GetUser(e string) models.User
+	AddUser(*models.User)
+	GetUser(int64) models.User
+	GetUserByEmail(string) models.User
 }
 
 type UserService struct {
@@ -36,12 +37,24 @@ func (s UserService) AddUser(u *models.User) {
 	}
 }
 
-func (s UserService) GetUser(e string) (user models.User) {
+func (s UserService) GetUser(id int64) (u models.User) {
 	o := s.ormService.NewOrm()
 
-	user.Email = e
+	u.Id = id
 
-	if err := o.Read(&user, "email"); err == orm.ErrNoRows {
+	if err := o.Read(&u); err == orm.ErrNoRows {
+		panic(ErrorUserIdNotFound(id))
+	}
+
+	return
+}
+
+func (s UserService) GetUserByEmail(e string) (u models.User) {
+	o := s.ormService.NewOrm()
+
+	u.Email = e
+
+	if err := o.Read(&u, "email"); err == orm.ErrNoRows {
 		panic(ErrorUserNotFound(e))
 	}
 

@@ -28,11 +28,43 @@ func (s ServiceError) Status() int {
 	return s.status
 }
 
+func ErroGroupIdNotFound(id int64) IServiceError {
+	return ServiceError{
+		id:     "GroupIdNotFound",
+		msg:    fmt.Sprintf("Group with id '%d' doesn't exist", id),
+		status: 404,
+	}
+}
+
+func ErroGroupNotFound(name string) IServiceError {
+	return ServiceError{
+		id:     "GroupNotFound",
+		msg:    fmt.Sprintf("Group '%s' doesn't exist", name),
+		status: 404,
+	}
+}
+
+func ErrorGroupNameExists(name string) IServiceError {
+	return ServiceError{
+		id:     "GroupNameExists",
+		msg:    fmt.Sprintf("Group '%s' already exists", name),
+		status: 400,
+	}
+}
+
 func ErrorUserEmailExists(email string) IServiceError {
 	return ServiceError{
 		id:     "EmailExists",
 		msg:    fmt.Sprintf("User email '%s' is currently in use", email),
 		status: 400,
+	}
+}
+
+func ErrorUserIdNotFound(id int64) IServiceError {
+	return ServiceError{
+		id:     "UserIdNotFound",
+		msg:    fmt.Sprintf("User with id '%d' doesn't exist", id),
+		status: 404,
 	}
 }
 

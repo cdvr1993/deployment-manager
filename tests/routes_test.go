@@ -36,7 +36,7 @@ func TestEndpointsAreWorking(t *testing.T) {
 			AddUser: func(u *models.User) {
 				u.Id = user.Id
 			},
-			GetUser: func(e string) models.User {
+			GetUserByEmail: func(e string) models.User {
 				return user
 			},
 		}),
