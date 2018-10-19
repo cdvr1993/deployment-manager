@@ -7,8 +7,11 @@ import (
 
 type IUserService interface {
 	AddUser(*models.User)
+	GetAll() []*models.User
 	GetUser(int64) models.User
 	GetUserByEmail(string) models.User
+	DeleteUser(int64)
+	UpdateUser(models.User)
 }
 
 type UserService struct {
@@ -37,6 +40,13 @@ func (s UserService) AddUser(u *models.User) {
 	}
 }
 
+func (s UserService) GetAll() (users []*models.User) {
+	o := s.ormService.NewOrm()
+	o.QueryTable(new(models.User)).All(&users)
+
+	return
+}
+
 func (s UserService) GetUser(id int64) (u models.User) {
 	o := s.ormService.NewOrm()
 
@@ -59,4 +69,26 @@ func (s UserService) GetUserByEmail(e string) (u models.User) {
 	}
 
 	return
+}
+
+func (s UserService) DeleteUser(uid int64) {
+	user := s.GetUser(uid)
+
+	o := s.ormService.NewOrm()
+	o.Delete(&user)
+}
+
+func (s UserService) UpdateUser(u models.User) {
+	if u.Email != "" {
+		panic(ErrorUserCanNotEditEmail(u.Id, u.Email))
+	}
+
+	dbUser := s.GetUser(u.Id)
+
+	if u.Name != "" {
+		dbUser.Name = u.Name
+
+		o := s.ormService.NewOrm()
+		o.Update(&dbUser)
+	}
 }

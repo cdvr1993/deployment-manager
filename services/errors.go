@@ -52,6 +52,14 @@ func ErrorGroupNameExists(name string) IServiceError {
 	}
 }
 
+func ErrorUserCanNotEditEmail(id int64, email string) IServiceError {
+	return ServiceError{
+		id:     "UserCanNotEditEmail",
+		msg:    fmt.Sprintf("Can't change email '%s' for user with id '%d'", email, id),
+		status: 400,
+	}
+}
+
 func ErrorUserEmailExists(email string) IServiceError {
 	return ServiceError{
 		id:     "EmailExists",

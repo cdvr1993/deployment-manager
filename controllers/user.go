@@ -40,10 +40,10 @@ type ResponseGetAllUsers struct {
 // @Description Get all Users
 // @Success 200 {object} controllers.ResponseGetAllUsers
 // @router / [get]
-func (u *UserController) GetAll() {
-	// users := models.GetAllUsers()
-	// u.Data["json"] = users
-	// u.ServeJSON()
+func (c *UserController) GetAll() {
+	defer services.ServeJson(&c.Controller)
+
+	c.Data["json"] = ResponseGetAllUsers{c.UserService.GetAll()}
 }
 
 type ResponseGetUserByEmail struct {
@@ -61,4 +61,49 @@ func (c *UserController) Get() {
 	email := c.GetString(":email")
 	user := c.UserService.GetUserByEmail(email)
 	c.Data["json"] = ResponseGetUserByEmail{user}
+}
+
+type RequestUpdateUser struct {
+	Name string
+}
+
+type ResponseUpdateUser struct {
+	Date string
+}
+
+// @Title Put
+// @Description Update user by id
+// @Param	user_id	path 	number	true	"The user's id"
+// @Param	body	body 	controllers.RequestUpdateUser	true	"Body to update the user"
+// @Success 200 {object} controllers.ResponseUpdateUser
+// @router /:user_id [put]
+func (c *UserController) UpdateUser() {
+	defer services.ServeJson(&c.Controller)
+
+	var request RequestUpdateUser
+	json.Unmarshal(c.Ctx.Input.RequestBody, &request)
+
+	user_id, _ := c.GetInt64(":user_id")
+	c.UserService.UpdateUser(models.User{
+		Id:   user_id,
+		Name: request.Name,
+	})
+	c.Data["json"] = ResponseUpdateUser{"User updated successfully"}
+}
+
+type ResponseDeleteUser struct {
+	Data string
+}
+
+// @Title Delete
+// @Description Delete user by id
+// @Param	user_id	path 	number	true	"The user's id"
+// @Success 200 {object} controllers.ResponseDeleteUser
+// @router /:user_id [delete]
+func (c *UserController) DeleteUser() {
+	defer services.ServeJson(&c.Controller)
+
+	user_id, _ := c.GetInt64(":user_id")
+	c.UserService.DeleteUser(user_id)
+	c.Data["json"] = ResponseDeleteUser{"User deleted successfully"}
 }
