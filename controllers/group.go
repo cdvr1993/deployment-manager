@@ -59,7 +59,7 @@ type ResponseAddMember struct {
 
 // @Title Put
 // @Description Add member
-// @Param	group_id	path 	string	true	"Group in which the user will be added"
+// @Param	group_id	path 	number	true	"Group in which the user will be added"
 // @Param	body	body controllers.RequestAddUser	true	"Body with id of the user to be added"
 // @Success 200 {object} controllers.ResponseAddMember
 // @router /:group_id/member [put]
@@ -85,7 +85,7 @@ type ResponseRemoveMember struct {
 
 // @Title Delete
 // @Description Add member
-// @Param	group_id	path 	string	true	"Group in which the user will be removed"
+// @Param	group_id	path 	number	true	"Group in which the user will be removed"
 // @Param	body	body controllers.RequestRemoveUser	true	"Body with id of the user to be removed"
 // @Success 200 {object} controllers.ResponseAddMember
 // @router /:group_id/member [delete]
