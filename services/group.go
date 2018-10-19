@@ -9,6 +9,7 @@ type IGroupService interface {
 	AddMember(int64, int64)
 	CreateGroup(*models.Group)
 	GetGroup(string) models.Group
+	RemoveMember(int64, int64)
 }
 
 type GroupService struct {
@@ -66,4 +67,19 @@ func (s GroupService) GetGroup(n string) (g models.Group) {
 	o.LoadRelated(&g, "Members")
 
 	return
+}
+
+func (s GroupService) RemoveMember(gid int64, uid int64) {
+	group := models.Group{Id: gid}
+
+	o := s.ormService.NewOrm()
+
+	if err := o.Read(&group); err == orm.ErrNoRows {
+		panic(ErroGroupIdNotFound(gid))
+	}
+
+	user := models.User{Id: uid}
+	memb := models.GroupMember{User: &user, Group: &group}
+
+	o.Delete(&memb, "user_id")
 }
