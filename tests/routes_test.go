@@ -36,6 +36,9 @@ func TestEndpointsAreWorking(t *testing.T) {
 			AddUser: func(u *models.User) {
 				u.Id = user.Id
 			},
+			GetAll: func() []*models.User {
+				return []*models.User{&user}
+			},
 			GetUserByEmail: func(e string) models.User {
 				return user
 			},
@@ -43,6 +46,11 @@ func TestEndpointsAreWorking(t *testing.T) {
 	})
 
 	tests := []MethodTester{
+		MethodTester{
+			Method: "GET",
+			Path:   "/v1/user",
+			Result: []*models.User{&user},
+		},
 		MethodTester{
 			Method: "POST",
 			Path:   "/v1/user",
@@ -55,6 +63,14 @@ func TestEndpointsAreWorking(t *testing.T) {
 			Method: "GET",
 			Path:   fmt.Sprintf("/v1/user/%s", user.Email),
 			Result: user,
+		},
+		MethodTester{
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/v1/user/%d", user.Id),
+		},
+		MethodTester{
+			Method: "PUT",
+			Path:   fmt.Sprintf("/v1/user/%d", user.Id),
 		},
 	}
 
@@ -71,16 +87,24 @@ func TestEndpointsAreWorking(t *testing.T) {
 			Convey("The Result Should Not Be Empty", func() {
 				So(w.Body.Len(), ShouldBeGreaterThan, 0)
 			})
-			Convey("The result should be of proper type", func() {
-				switch v := tt.Result.(type) {
-				case models.User:
-					var response map[string]models.User
-					json.Unmarshal(w.Body.Bytes(), &response)
-					So(response["data"], ShouldNotEqual, v)
-				default:
-					t.Fatalf("Missing case for: '%s'", v)
-				}
-			})
+
+			// Update and delete response usually doesn't matter, just the status
+			if tt.Result != nil {
+				Convey("The result should be of proper type", func() {
+					switch v := tt.Result.(type) {
+					case models.User:
+						var response map[string]models.User
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"], ShouldResemble, v)
+					case []*models.User:
+						var response map[string][]models.User
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"][0], ShouldResemble, *(v[0]))
+					default:
+						t.Fatalf("Missing case for: '%s'", v)
+					}
+				})
+			}
 		})
 	}
 }
