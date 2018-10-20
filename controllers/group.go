@@ -2,11 +2,27 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/astaxie/beego"
 	"github.com/cdvr1993/deployment-manager/models"
 	"github.com/cdvr1993/deployment-manager/services"
 )
+
+type ResponseGetAllGroups struct {
+	Data []*models.Group
+}
+
+// @Title Get
+// @Description Get all groups
+// @Success 200 {object} controllers.ResponseGetAllGroups
+// @router / [get]
+func (c *GroupController) GetAll() {
+	defer services.ServeJson(&c.Controller)
+
+	groups := c.GroupService.GetAllGroups()
+	c.Data["json"] = ResponseGetAllGroups{groups}
+}
 
 type GroupController struct {
 	beego.Controller
@@ -37,16 +53,58 @@ type ResponseGetGroupByName struct {
 }
 
 // @Title Get
-// @Description get group by name
+// @Description Get group by name
 // @Param	name	path 	string	true	"The name of the group"
+// @Param	body	body 	models.Group	true	"Body for group content"
 // @Success 200 {object} controllers.ResponseGetGroupByName
 // @router /:name [get]
 func (c *GroupController) Get() {
 	defer services.ServeJson(&c.Controller)
 
 	name := c.GetString(":name")
-	group := c.GroupService.GetGroup(name)
+	group := c.GroupService.GetGroupByName(name)
 	c.Data["json"] = ResponseGetGroupByName{group}
+}
+
+type ResponseUpdateGroup struct {
+	Data string
+}
+
+// @Title Put
+// @Description Update group
+// @Param	group_id	path 	number	true	"The id of the group"
+// @Param	body	body 	models.Group	true	"Body for group content"
+// @Success 200 {object} controllers.ResponseUpdateGroup
+// @router /:group_id [put]
+// It helps on changing the name of the group without loosing user membership
+func (c *GroupController) UpdateGroup() {
+	defer services.ServeJson(&c.Controller)
+
+	var group models.Group
+	json.Unmarshal(c.Ctx.Input.RequestBody, &group)
+
+	group.Id, _ = c.GetInt64(":group_id")
+	c.GroupService.UpdateGroup(group)
+	c.Data["json"] = ResponseUpdateGroup{
+		fmt.Sprintf("Group '%s' updated successfully", group.Name),
+	}
+}
+
+type ResponseDeleteGroup struct {
+	Data string
+}
+
+// @Title Delete
+// @Description Delete group
+// @Param	group_id	path 	number	true	"The id of the group"
+// @Success 200 {object} controllers.ResponseDeleteGroup
+// @router /:group_id [delete]
+func (c *GroupController) DeleteGroup() {
+	defer services.ServeJson(&c.Controller)
+
+	groupId, _ := c.GetInt64(":group_id")
+	c.GroupService.DeleteGroup(groupId)
+	c.Data["json"] = ResponseUpdateGroup{"Group deleted successfully"}
 }
 
 type RequestAddUser struct {

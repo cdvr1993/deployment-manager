@@ -28,6 +28,14 @@ func (s ServiceError) Status() int {
 	return s.status
 }
 
+func ErrorNothingToUpdate(obj interface{}) IServiceError {
+	return ServiceError{
+		id:     "NothingToUpdate",
+		msg:    fmt.Sprintf("There is nothing to update '(%x)'", obj),
+		status: 400,
+	}
+}
+
 func ErroGroupIdNotFound(id int64) IServiceError {
 	return ServiceError{
 		id:     "GroupIdNotFound",
