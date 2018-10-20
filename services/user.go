@@ -41,18 +41,15 @@ func (s UserService) AddUser(u *models.User) {
 }
 
 func (s UserService) GetAll() (users []*models.User) {
-	o := s.ormService.NewOrm()
-	o.QueryTable(new(models.User)).All(&users)
+	s.ormService.NewOrm().QueryTable(new(models.User)).All(&users)
 
 	return
 }
 
 func (s UserService) GetUser(id int64) (u models.User) {
-	o := s.ormService.NewOrm()
-
 	u.Id = id
 
-	if err := o.Read(&u); err == orm.ErrNoRows {
+	if err := s.ormService.NewOrm().Read(&u); err == orm.ErrNoRows {
 		panic(ErrorUserIdNotFound(id))
 	}
 
@@ -60,11 +57,9 @@ func (s UserService) GetUser(id int64) (u models.User) {
 }
 
 func (s UserService) GetUserByEmail(e string) (u models.User) {
-	o := s.ormService.NewOrm()
-
 	u.Email = e
 
-	if err := o.Read(&u, "email"); err == orm.ErrNoRows {
+	if err := s.ormService.NewOrm().Read(&u, "email"); err == orm.ErrNoRows {
 		panic(ErrorUserNotFound(e))
 	}
 
@@ -74,8 +69,9 @@ func (s UserService) GetUserByEmail(e string) (u models.User) {
 func (s UserService) DeleteUser(uid int64) {
 	user := s.GetUser(uid)
 
-	o := s.ormService.NewOrm()
-	o.Delete(&user)
+	if _, err := s.ormService.NewOrm().Delete(&user); err != nil {
+		panic(err)
+	}
 }
 
 func (s UserService) UpdateUser(u models.User) {
@@ -88,7 +84,8 @@ func (s UserService) UpdateUser(u models.User) {
 	if u.Name != "" {
 		dbUser.Name = u.Name
 
-		o := s.ormService.NewOrm()
-		o.Update(&dbUser)
+		if _, err := s.ormService.NewOrm().Update(&dbUser); err != nil {
+			panic(err)
+		}
 	}
 }
