@@ -6,7 +6,7 @@ import (
 )
 
 type GroupServiceMethods struct {
-	AddMember      func(int64, int64)
+	AddMember      func(int64, int64, string)
 	CreateGroup    func(*models.Group)
 	DeleteGroup    func(int64)
 	GetAllGroups   func() []*models.Group
@@ -26,9 +26,9 @@ func NewGroupServiceMock(m GroupServiceMethods) (s GroupService) {
 	return
 }
 
-func (s GroupService) AddMember(a int64, b int64) {
+func (s GroupService) AddMember(a, b int64, c string) {
 	if s.methods.AddMember != nil {
-		s.methods.AddMember(a, b)
+		s.methods.AddMember(a, b, c)
 	}
 }
 

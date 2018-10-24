@@ -108,7 +108,8 @@ func (c *GroupController) DeleteGroup() {
 }
 
 type RequestAddUser struct {
-	Id int64
+	Id   int64
+	Role string
 }
 
 type ResponseAddMember struct {
@@ -129,7 +130,7 @@ func (c *GroupController) AddMember() {
 
 	groupId, _ := c.GetInt64(":group_id")
 
-	c.GroupService.AddMember(groupId, req.Id)
+	c.GroupService.AddMember(groupId, req.Id, req.Role)
 	c.Data["json"] = ResponseAddMember{"Member added successfully"}
 }
 

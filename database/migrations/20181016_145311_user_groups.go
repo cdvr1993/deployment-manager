@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego/migration"
 )
 
@@ -35,12 +37,26 @@ func (m *UserGroups_20181016_145311) Up() {
 	`)
 
 	m.SQL(`
+		create table .role (
+			id int primary key auto_increment,
+			name varchar(32) not null unique
+		)
+	`)
+
+	roles := []string{"SuperAdministrator", "Administrator", "Viewer"}
+	for _, role := range roles {
+		m.SQL(fmt.Sprintf("insert into .role values (NULL, '%s')", role))
+	}
+
+	m.SQL(`
 		create table user_group (
 			id int primary key auto_increment,
 			user_id int not null,
 			group_id int not null,
+			role_id int not null,
 			foreign key (user_id) references user(id),
-			foreign key (group_id) references ` + "`group`" + `(id)
+			foreign key (group_id) references ` + "`group`" + `(id),
+			foreign key (role_id) references role(id)
 		)
 	`)
 }

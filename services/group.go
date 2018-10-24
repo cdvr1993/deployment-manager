@@ -6,7 +6,7 @@ import (
 )
 
 type IGroupService interface {
-	AddMember(int64, int64)
+	AddMember(int64, int64, string)
 	CreateGroup(*models.Group)
 	DeleteGroup(int64)
 	GetAllGroups() []*models.Group
@@ -18,12 +18,14 @@ type IGroupService interface {
 
 type GroupService struct {
 	ormService  IOrmService
+	roleService IRoleService
 	userService IUserService
 }
 
 var (
 	groupService = GroupService{
 		ormService:  NewOrmService(),
+		roleService: NewRoleService(),
 		userService: NewUserService(),
 	}
 )
@@ -32,11 +34,13 @@ func NewGroupService() *GroupService {
 	return &groupService
 }
 
-func (s GroupService) AddMember(gid, uid int64) {
+func (s GroupService) AddMember(gid, uid int64, rName string) {
+	role := s.roleService.GetRole(rName)
+
 	user := s.userService.GetUser(uid)
 	group := s.GetGroup(gid, nil)
 
-	memb := models.GroupMember{User: &user, Group: &group}
+	memb := models.GroupMember{User: &user, Group: &group, Role: &role}
 
 	s.ormService.NewOrm().ReadOrCreate(&memb, "user_id", "group_id")
 }

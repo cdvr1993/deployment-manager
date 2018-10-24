@@ -10,6 +10,7 @@ type GroupMember struct {
 	Id    int64
 	Group *Group `orm:"rel(fk);on_delete(do_nothing)"`
 	User  *User  `orm:"rel(fk);on_delete(do_nothing)"`
+	Role  *Role  `orm:"rel(fk);on_delete(do_nothing)"`
 }
 
 func (u *GroupMember) TableName() string {

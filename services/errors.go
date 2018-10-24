@@ -60,6 +60,14 @@ func ErrorGroupNameExists(name string) IServiceError {
 	}
 }
 
+func ErrorRoleNotFound(role string) IServiceError {
+	return ServiceError{
+		id:     "RoleNotFound",
+		msg:    fmt.Sprintf("The role '%s' doesn't exist", role),
+		status: 404,
+	}
+}
+
 func ErrorUserCanNotEditEmail(id int64, email string) IServiceError {
 	return ServiceError{
 		id:     "UserCanNotEditEmail",
