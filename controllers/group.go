@@ -115,12 +115,12 @@ type ResponseAddMember struct {
 	Data string
 }
 
-// @Title Put
+// @Title Post
 // @Description Add member
 // @Param	group_id	path 	number	true	"Group in which the user will be added"
 // @Param	body	body controllers.RequestAddUser	true	"Body with id of the user to be added"
 // @Success 200 {object} controllers.ResponseAddMember
-// @router /:group_id/member [put]
+// @router /:group_id/member [post]
 func (c *GroupController) AddMember() {
 	defer services.ServeJson(&c.Controller)
 
@@ -130,11 +130,7 @@ func (c *GroupController) AddMember() {
 	groupId, _ := c.GetInt64(":group_id")
 
 	c.GroupService.AddMember(groupId, req.Id)
-	c.Data["json"] = ResponseAddMember{"Member added"}
-}
-
-type RequestRemoveUser struct {
-	Id int64
+	c.Data["json"] = ResponseAddMember{"Member added successfully"}
 }
 
 type ResponseRemoveMember struct {
@@ -144,17 +140,15 @@ type ResponseRemoveMember struct {
 // @Title Delete
 // @Description Add member
 // @Param	group_id	path 	number	true	"Group in which the user will be removed"
-// @Param	body	body controllers.RequestRemoveUser	true	"Body with id of the user to be removed"
+// @Param	member_id	path	number	true	"Id of the user to be removed"
 // @Success 200 {object} controllers.ResponseAddMember
-// @router /:group_id/member [delete]
+// @router /:group_id/member/:member_id [delete]
 func (c *GroupController) RemoveMember() {
 	defer services.ServeJson(&c.Controller)
 
-	var req RequestRemoveUser
-	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
-
 	groupId, _ := c.GetInt64(":group_id")
+	member_id, _ := c.GetInt64(":member_id")
 
-	c.GroupService.RemoveMember(groupId, req.Id)
-	c.Data["json"] = ResponseRemoveMember{"Member removed"}
+	c.GroupService.RemoveMember(groupId, member_id)
+	c.Data["json"] = ResponseRemoveMember{"Member removed successfully"}
 }

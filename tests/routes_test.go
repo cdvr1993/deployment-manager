@@ -31,7 +31,23 @@ func TestEndpointsAreWorking(t *testing.T) {
 		Email: "example@example.com",
 	}
 
+	group := models.Group{
+		Id:   1,
+		Name: "MyGroup",
+	}
+
 	routers.InitRouter(routers.ServiceManager{
+		GroupService: services.NewGroupServiceMock(services.GroupServiceMethods{
+			CreateGroup: func(g *models.Group) {
+				g.Id = group.Id
+			},
+			GetAllGroups: func() []*models.Group {
+				return []*models.Group{&group}
+			},
+			GetGroupByName: func(string) models.Group {
+				return group
+			},
+		}),
 		UserService: services.NewUserServiceMock(services.UserServiceMethods{
 			AddUser: func(u *models.User) {
 				u.Id = user.Id
@@ -72,6 +88,44 @@ func TestEndpointsAreWorking(t *testing.T) {
 			Method: "PUT",
 			Path:   fmt.Sprintf("/v1/user/%d", user.Id),
 		},
+		MethodTester{
+			Method: "GET",
+			Path:   fmt.Sprintf("/v1/group/%s", group.Name),
+			Result: group,
+		},
+		MethodTester{
+			Method: "GET",
+			Path:   "/v1/group",
+			Result: []*models.Group{&group},
+		},
+		MethodTester{
+			Method: "POST",
+			Path:   "/v1/group",
+			Body:   fmt.Sprintf(`{"name": "%s"}`, group.Name),
+			Result: group,
+		},
+		MethodTester{
+			Method: "PUT",
+			Path:   fmt.Sprintf("/v1/group/%d", group.Id),
+			Body:   fmt.Sprintf(`{"name": "%s"}`, group.Name),
+			Result: "updated successfully",
+		},
+		MethodTester{
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/v1/group/%d", group.Id),
+			Result: "deleted successfully",
+		},
+		MethodTester{
+			Method: "POST",
+			Path:   fmt.Sprintf("/v1/group/%d/member", group.Id),
+			Body:   fmt.Sprintf(`{"id": "%d"}`, user.Id),
+			Result: "added successfully",
+		},
+		MethodTester{
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/v1/group/%d/member/%d", group.Id, user.Id),
+			Result: "removed successfully",
+		},
 	}
 
 	for _, tt := range tests {
@@ -100,6 +154,18 @@ func TestEndpointsAreWorking(t *testing.T) {
 						var response map[string][]models.User
 						json.Unmarshal(w.Body.Bytes(), &response)
 						So(response["Data"][0], ShouldResemble, *(v[0]))
+					case models.Group:
+						var response map[string]models.Group
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"], ShouldResemble, v)
+					case []*models.Group:
+						var response map[string][]models.Group
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"][0], ShouldResemble, *(v[0]))
+					case string:
+						var response map[string]string
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"], ShouldContainSubstring, v)
 					default:
 						t.Fatalf("Missing case for: '%s'", v)
 					}
