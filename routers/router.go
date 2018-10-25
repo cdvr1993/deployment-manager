@@ -15,6 +15,7 @@ import (
 
 type ServiceManager struct {
 	GroupService services.IGroupService
+	RoleService  services.IRoleService
 	UserService  services.IUserService
 }
 
@@ -33,6 +34,13 @@ func InitRouter(m ServiceManager) {
 				},
 			),
 		),
+		beego.NSNamespace("/role",
+			beego.NSInclude(
+				&controllers.RoleController{
+					RoleService: m.RoleService,
+				},
+			),
+		),
 		beego.NSNamespace("/user",
 			beego.NSInclude(
 				&controllers.UserController{
@@ -48,6 +56,7 @@ func InjectServices() {
 	// Used as a dependency injection
 	InitRouter(ServiceManager{
 		GroupService: services.NewGroupService(),
+		RoleService:  services.NewRoleService(),
 		UserService:  services.NewUserService(),
 	})
 }

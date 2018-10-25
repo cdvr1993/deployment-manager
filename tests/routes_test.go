@@ -36,6 +36,11 @@ func TestEndpointsAreWorking(t *testing.T) {
 		Name: "MyGroup",
 	}
 
+	role := models.Role{
+		Id:   1,
+		Name: "Administrator",
+	}
+
 	routers.InitRouter(routers.ServiceManager{
 		GroupService: services.NewGroupServiceMock(services.GroupServiceMethods{
 			CreateGroup: func(g *models.Group) {
@@ -46,6 +51,11 @@ func TestEndpointsAreWorking(t *testing.T) {
 			},
 			GetGroupByName: func(string) models.Group {
 				return group
+			},
+		}),
+		RoleService: services.NewRoleServiceMock(services.RoleServiceMethods{
+			ListRoles: func() []*models.Role {
+				return []*models.Role{&role}
 			},
 		}),
 		UserService: services.NewUserServiceMock(services.UserServiceMethods{
@@ -126,6 +136,11 @@ func TestEndpointsAreWorking(t *testing.T) {
 			Path:   fmt.Sprintf("/v1/group/%d/member/%d", group.Id, user.Id),
 			Result: "removed successfully",
 		},
+		MethodTester{
+			Method: "GET",
+			Path:   "/v1/role",
+			Result: []*models.Role{&role},
+		},
 	}
 
 	for _, tt := range tests {
@@ -160,6 +175,10 @@ func TestEndpointsAreWorking(t *testing.T) {
 						So(response["Data"], ShouldResemble, v)
 					case []*models.Group:
 						var response map[string][]models.Group
+						json.Unmarshal(w.Body.Bytes(), &response)
+						So(response["Data"][0], ShouldResemble, *(v[0]))
+					case []*models.Role:
+						var response map[string][]models.Role
 						json.Unmarshal(w.Body.Bytes(), &response)
 						So(response["Data"][0], ShouldResemble, *(v[0]))
 					case string:
