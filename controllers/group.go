@@ -9,6 +9,11 @@ import (
 	"github.com/cdvr1993/deployment-manager/services"
 )
 
+type GroupController struct {
+	beego.Controller
+	GroupService services.IGroupService
+}
+
 type ResponseGetAllGroups struct {
 	Data []*models.Group
 }
@@ -22,11 +27,6 @@ func (c *GroupController) GetAll() {
 
 	groups := c.GroupService.GetAllGroups()
 	c.Data["json"] = ResponseGetAllGroups{groups}
-}
-
-type GroupController struct {
-	beego.Controller
-	GroupService services.IGroupService
 }
 
 type ResponseCreateGroup struct {
