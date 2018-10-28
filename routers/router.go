@@ -14,9 +14,11 @@ import (
 )
 
 type ServiceManager struct {
-	GroupService services.IGroupService
-	RoleService  services.IRoleService
-	UserService  services.IUserService
+	EnvironmentService services.IEnvironmentService
+	GroupService       services.IGroupService
+	ProjectService     services.IProjectService
+	RoleService        services.IRoleService
+	UserService        services.IUserService
 }
 
 // @APIVersion 1.0.0
@@ -27,10 +29,24 @@ type ServiceManager struct {
 // @LicenseUrl https://opensource.org/licenses/MIT
 func InitRouter(m ServiceManager) {
 	ns := beego.NewNamespace("/v1",
+		beego.NSNamespace("/environment",
+			beego.NSInclude(
+				&controllers.EnvironmentController{
+					EnvironmentService: m.EnvironmentService,
+				},
+			),
+		),
 		beego.NSNamespace("/group",
 			beego.NSInclude(
 				&controllers.GroupController{
 					GroupService: m.GroupService,
+				},
+			),
+		),
+		beego.NSNamespace("/project",
+			beego.NSInclude(
+				&controllers.ProjectController{
+					ProjectService: m.ProjectService,
 				},
 			),
 		),
@@ -55,8 +71,10 @@ func InitRouter(m ServiceManager) {
 func InjectServices() {
 	// Used as a dependency injection
 	InitRouter(ServiceManager{
-		GroupService: services.NewGroupService(),
-		RoleService:  services.NewRoleService(),
-		UserService:  services.NewUserService(),
+		EnvironmentService: services.NewEnvironmentService(),
+		GroupService:       services.NewGroupService(),
+		RoleService:        services.NewRoleService(),
+		UserService:        services.NewUserService(),
+		ProjectService:     services.NewProjectService(),
 	})
 }
