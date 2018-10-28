@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
+	"github.com/cdvr1993/deployment-manager/middleware"
 	"github.com/cdvr1993/deployment-manager/routers"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -12,6 +13,7 @@ func main() {
 	orm.RegisterDataBase("default", "mysql", beego.AppConfig.String("SqlUrl"))
 
 	routers.InjectServices()
+	middleware.InitMiddleware()
 
 	if beego.BConfig.RunMode == "dev" {
 		orm.Debug = true

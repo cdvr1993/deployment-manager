@@ -43,7 +43,7 @@ func (m *UserGroups_20181016_145311) Up() {
 		)
 	`)
 
-	roles := []string{"SuperAdministrator", "Administrator", "Viewer"}
+	roles := []string{"SuperAdministrator", "Owner", "Administrator", "Viewer"}
 	for _, role := range roles {
 		m.SQL(fmt.Sprintf("insert into .role values (NULL, '%s')", role))
 	}

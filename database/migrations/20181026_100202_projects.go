@@ -22,9 +22,7 @@ func (m *Projects_20181026_100202) Up() {
 	m.SQL(`
 		create table project (
 			id int primary key auto_increment,
-			name varchar(128) not null unique,
-			owner_id int not null,
-			foreign key (owner_id) references user(id)
+			name varchar(128) not null unique
 		)
 	`)
 

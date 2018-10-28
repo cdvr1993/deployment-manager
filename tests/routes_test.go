@@ -43,7 +43,7 @@ func TestEndpointsAreWorking(t *testing.T) {
 
 	routers.InitRouter(routers.ServiceManager{
 		GroupService: services.NewGroupServiceMock(services.GroupServiceMethods{
-			CreateGroup: func(g *models.Group) {
+			CreateGroup: func(g *models.Group, e string) {
 				g.Id = group.Id
 			},
 			GetAllGroups: func() []*models.Group {

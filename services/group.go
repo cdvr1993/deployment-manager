@@ -7,7 +7,7 @@ import (
 
 type IGroupService interface {
 	AddMember(int64, int64, string)
-	CreateGroup(*models.Group)
+	CreateGroup(*models.Group, string)
 	DeleteGroup(int64)
 	GetAllGroups() []*models.Group
 	GetGroup(int64, *GetGroupOptions) models.Group
@@ -45,15 +45,21 @@ func (s GroupService) AddMember(gid, uid int64, rName string) {
 	s.ormService.NewOrm().ReadOrCreate(&memb, "user_id", "group_id")
 }
 
-func (s GroupService) CreateGroup(g *models.Group) {
+func (s GroupService) CreateGroup(g *models.Group, e string) {
 	o := s.ormService.NewOrm()
+
+	user := s.userService.GetUserByEmail(e)
 
 	if created, id, err := o.ReadOrCreate(g, "name"); err == nil {
 		if created {
 			g.Id = id
+
+			s.AddMember(g.Id, user.Id, "Owner")
 		} else {
 			panic(ErrorGroupNameExists(g.Name))
 		}
+	} else {
+		panic(err)
 	}
 }
 
@@ -99,7 +105,7 @@ func (s GroupService) GetGroup(gid int64, opts *GetGroupOptions) (g models.Group
 
 	if opts != nil {
 		if opts.LoadRelated {
-			o.LoadRelated(&g, "Members")
+			s.loadMembers(&g)
 		}
 	}
 
@@ -115,9 +121,20 @@ func (s GroupService) GetGroupByName(n string) (g models.Group) {
 		panic(ErroGroupNotFound(n))
 	}
 
-	o.LoadRelated(&g, "Members")
+	s.loadMembers(&g)
 
 	return
+}
+
+func (s GroupService) loadMembers(g *models.Group) {
+	s.
+		ormService.
+		NewOrm().
+		QueryTable(new(models.GroupMember)).
+		Filter("group_id", g.Id).
+		RelatedSel("user").
+		RelatedSel("role").
+		All(&g.Members)
 }
 
 func (s GroupService) RemoveMember(gid int64, uid int64) {

@@ -7,7 +7,7 @@ import (
 
 type GroupServiceMethods struct {
 	AddMember      func(int64, int64, string)
-	CreateGroup    func(*models.Group)
+	CreateGroup    func(*models.Group, string)
 	DeleteGroup    func(int64)
 	GetAllGroups   func() []*models.Group
 	GetGroup       func(int64, *svcs.GetGroupOptions) models.Group
@@ -32,9 +32,9 @@ func (s GroupService) AddMember(a, b int64, c string) {
 	}
 }
 
-func (s GroupService) CreateGroup(g *models.Group) {
+func (s GroupService) CreateGroup(g *models.Group, e string) {
 	if s.methods.CreateGroup != nil {
-		s.methods.CreateGroup(g)
+		s.methods.CreateGroup(g, e)
 	}
 }
 

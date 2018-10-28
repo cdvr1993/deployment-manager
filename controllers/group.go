@@ -44,7 +44,7 @@ func (c *GroupController) Post() {
 	var group models.Group
 	json.Unmarshal(c.Ctx.Input.RequestBody, &group)
 
-	c.GroupService.CreateGroup(&group)
+	c.GroupService.CreateGroup(&group, c.Ctx.Input.Header("email"))
 	c.Data["json"] = ResponseCreateGroup{group}
 }
 
