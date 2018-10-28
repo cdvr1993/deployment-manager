@@ -75,9 +75,9 @@ func (s GroupService) DeleteGroup(gid int64) {
 }
 
 func (s GroupService) GetAllGroups() (groups []*models.Group) {
-	o := s.ormService.NewOrm()
+	qs := s.ormService.NewOrm().QueryTable(new(models.Group))
 
-	if _, err := o.QueryTable(new(models.Group)).All(&groups); err != nil {
+	if _, err := qs.All(&groups); err != nil && err != orm.ErrNoRows {
 		panic(err)
 	}
 

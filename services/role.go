@@ -37,9 +37,9 @@ func (s RoleService) GetRole(name string) (role models.Role) {
 }
 
 func (s RoleService) ListRoles() (roles []*models.Role) {
-	o := s.ormService.NewOrm()
+	qs := s.ormService.NewOrm().QueryTable(new(models.Role))
 
-	if _, err := o.QueryTable(new(models.Role)).All(&roles); err != nil {
+	if _, err := qs.All(&roles); err != nil && err != orm.ErrNoRows {
 		panic(err)
 	}
 

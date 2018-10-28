@@ -41,7 +41,11 @@ func (s UserService) AddUser(u *models.User) {
 }
 
 func (s UserService) GetAll() (users []*models.User) {
-	s.ormService.NewOrm().QueryTable(new(models.User)).All(&users)
+	qs := s.ormService.NewOrm().QueryTable(new(models.User))
+
+	if _, err := qs.All(&users); err != nil && err != orm.ErrNoRows {
+		panic(err)
+	}
 
 	return
 }
