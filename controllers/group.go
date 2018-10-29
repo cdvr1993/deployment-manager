@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego"
+	"github.com/cdvr1993/deployment-manager/middleware"
 	"github.com/cdvr1993/deployment-manager/models"
 	"github.com/cdvr1993/deployment-manager/services"
 )
@@ -44,7 +45,10 @@ func (c *GroupController) Post() {
 	var group models.Group
 	json.Unmarshal(c.Ctx.Input.RequestBody, &group)
 
-	c.GroupService.CreateGroup(&group, c.Ctx.Input.Header("email"))
+	c.GroupService.CreateGroup(
+		&group,
+		c.Ctx.Input.Header(middleware.EMAIL_HEADER),
+	)
 	c.Data["json"] = ResponseCreateGroup{group}
 }
 

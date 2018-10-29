@@ -12,6 +12,7 @@ type IGroupService interface {
 	GetAllGroups() []*models.Group
 	GetGroup(int64, *GetGroupOptions) models.Group
 	GetGroupByName(string) models.Group
+	IsAllowed(models.Group, models.User, bool) bool
 	RemoveMember(int64, int64)
 	UpdateGroup(models.Group)
 }
@@ -124,6 +125,31 @@ func (s GroupService) GetGroupByName(n string) (g models.Group) {
 	s.loadMembers(&g)
 
 	return
+}
+
+func (s GroupService) IsAllowed(g models.Group, u models.User, ro bool) bool {
+	if g.Id > 0 {
+		g = s.GetGroup(g.Id, nil)
+	} else {
+		g = s.GetGroupByName(g.Name)
+	}
+
+	groupM := new(models.GroupMember)
+
+	s.
+		ormService.
+		NewOrm().
+		QueryTable(groupM).
+		Filter("group_id", g.Id).
+		Filter("user_id", u.Id).
+		RelatedSel("role").
+		One(groupM)
+
+	if !ro && groupM.Role.Name == "Viewer" {
+		return false
+	}
+
+	return true
 }
 
 func (s GroupService) loadMembers(g *models.Group) {

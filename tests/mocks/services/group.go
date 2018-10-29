@@ -12,6 +12,7 @@ type GroupServiceMethods struct {
 	GetAllGroups   func() []*models.Group
 	GetGroup       func(int64, *svcs.GetGroupOptions) models.Group
 	GetGroupByName func(string) models.Group
+	IsAllowed      func(models.Group, models.User, bool) bool
 	RemoveMember   func(int64, int64)
 	UpdateGroup    func(models.Group)
 }
@@ -66,6 +67,14 @@ func (s GroupService) GetGroupByName(n string) models.Group {
 	}
 
 	return models.Group{}
+}
+
+func (s GroupService) IsAllowed(g models.Group, u models.User, ro bool) bool {
+	if s.methods.IsAllowed != nil {
+		return s.methods.IsAllowed(g, u, ro)
+	}
+
+	return false
 }
 
 func (s GroupService) RemoveMember(gid int64, uid int64) {
