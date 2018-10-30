@@ -9,7 +9,7 @@ type GroupServiceMethods struct {
 	AddMember      func(int64, int64, string)
 	CreateGroup    func(*models.Group, string)
 	DeleteGroup    func(int64)
-	GetAllGroups   func() []*models.Group
+	GetAllGroups   func(svcs.GetAllGroupsOptions) []*models.Group
 	GetGroup       func(int64, *svcs.GetGroupOptions) models.Group
 	GetGroupByName func(string) models.Group
 	IsAllowed      func(models.Group, models.User, bool) bool
@@ -45,9 +45,9 @@ func (s GroupService) DeleteGroup(i int64) {
 	}
 }
 
-func (s GroupService) GetAllGroups() []*models.Group {
+func (s GroupService) GetAllGroups(opts svcs.GetAllGroupsOptions) []*models.Group {
 	if s.methods.GetAllGroups != nil {
-		return s.methods.GetAllGroups()
+		return s.methods.GetAllGroups(opts)
 	}
 
 	return nil

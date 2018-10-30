@@ -11,6 +11,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/cdvr1993/deployment-manager/models"
 	"github.com/cdvr1993/deployment-manager/routers"
+	svcs "github.com/cdvr1993/deployment-manager/services"
 	"github.com/cdvr1993/deployment-manager/tests/mocks/services"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -46,7 +47,7 @@ func TestEndpointsAreWorking(t *testing.T) {
 			CreateGroup: func(g *models.Group, e string) {
 				g.Id = group.Id
 			},
-			GetAllGroups: func() []*models.Group {
+			GetAllGroups: func(svcs.GetAllGroupsOptions) []*models.Group {
 				return []*models.Group{&group}
 			},
 			GetGroupByName: func(string) models.Group {

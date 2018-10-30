@@ -9,7 +9,7 @@ type IGroupService interface {
 	AddMember(int64, int64, string)
 	CreateGroup(*models.Group, string)
 	DeleteGroup(int64)
-	GetAllGroups() []*models.Group
+	GetAllGroups(GetAllGroupsOptions) []*models.Group
 	GetGroup(int64, *GetGroupOptions) models.Group
 	GetGroupByName(string) models.Group
 	IsAllowed(models.Group, models.User, bool) bool
@@ -81,8 +81,31 @@ func (s GroupService) DeleteGroup(gid int64) {
 	}
 }
 
-func (s GroupService) GetAllGroups() (groups []*models.Group) {
-	qs := s.ormService.NewOrm().QueryTable(new(models.Group))
+type GetAllGroupsOptions struct {
+	Email string
+}
+
+func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) (groups []*models.Group) {
+	u := s.userService.GetUserByEmail(opts.Email)
+
+	o := s.ormService.NewOrm()
+
+	var groupMs []*models.GroupMember
+	qs := o.QueryTable(new(models.GroupMember)).Filter("user_id", u.Id)
+
+	// Grab the groups that the user has access to
+	if _, err := qs.All(&groupMs); err != nil && err != orm.ErrNoRows {
+		panic(err)
+	}
+
+	ids := make([]interface{}, len(groupMs))
+	for i, _ := range groupMs {
+		ids[i] = groupMs[i].Id
+	}
+
+	qs = o.
+		QueryTable(new(models.Group)).
+		Filter("id__in", ids...)
 
 	if _, err := qs.All(&groups); err != nil && err != orm.ErrNoRows {
 		panic(err)

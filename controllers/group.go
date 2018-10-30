@@ -26,7 +26,9 @@ type ResponseGetAllGroups struct {
 func (c *GroupController) GetAll() {
 	defer services.ServeJson(&c.Controller)
 
-	groups := c.GroupService.GetAllGroups()
+	groups := c.GroupService.GetAllGroups(services.GetAllGroupsOptions{
+		Email: c.Ctx.Input.Header(middleware.EMAIL_HEADER),
+	})
 	c.Data["json"] = ResponseGetAllGroups{groups}
 }
 
