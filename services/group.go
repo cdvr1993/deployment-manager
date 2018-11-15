@@ -6,15 +6,15 @@ import (
 )
 
 type IGroupService interface {
-	AddMember(int64, int64, string)
-	CreateGroup(*models.Group, string)
-	DeleteGroup(int64)
-	GetAllGroups(GetAllGroupsOptions) []*models.Group
-	GetGroup(int64, *GetGroupOptions) models.Group
-	GetGroupByName(string) models.Group
-	IsAllowed(models.Group, models.User, bool) bool
-	RemoveMember(int64, int64)
-	UpdateGroup(models.Group)
+	AddMember(int64, int64, string) error
+	CreateGroup(*models.Group, string) error
+	DeleteGroup(int64) error
+	GetAllGroups(GetAllGroupsOptions) ([]*models.Group, error)
+	GetGroup(int64, *GetGroupOptions) (*models.Group, error)
+	GetGroupByName(string) (*models.Group, error)
+	IsAllowed(*models.Group, *models.User, bool) bool
+	RemoveMember(int64, int64) error
+	UpdateGroup(*models.Group) error
 }
 
 type GroupService struct {
@@ -35,58 +35,90 @@ func NewGroupService() *GroupService {
 	return &groupService
 }
 
-func (s GroupService) AddMember(gid, uid int64, rName string) {
+func (s GroupService) AddMember(gid, uid int64, rName string) error {
 	role := s.roleService.GetRole(rName)
 
-	user := s.userService.GetUser(uid)
-	group := s.GetGroup(gid, nil)
+	user, err := s.userService.GetUser(uid)
 
-	memb := models.GroupMember{User: &user, Group: &group, Role: &role}
-
-	s.ormService.NewOrm().ReadOrCreate(&memb, "user_id", "group_id")
-}
-
-func (s GroupService) CreateGroup(g *models.Group, e string) {
-	o := s.ormService.NewOrm()
-
-	user := s.userService.GetUserByEmail(e)
-
-	if created, id, err := o.ReadOrCreate(g, "name"); err == nil {
-		if created {
-			g.Id = id
-
-			s.AddMember(g.Id, user.Id, "Owner")
-		} else {
-			panic(ErrorGroupNameExists(g.Name))
-		}
-	} else {
-		panic(err)
+	if err != nil {
+		return err
 	}
+
+	group, err := s.GetGroup(gid, nil)
+
+	if err != nil {
+		return err
+	}
+
+	memb := models.GroupMember{User: user, Group: group, Role: role}
+
+	if _, _, err := s.ormService.NewOrm().ReadOrCreate(&memb, "user_id", "group_id"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s GroupService) DeleteGroup(gid int64) {
-	group := s.GetGroup(gid, nil)
+func (s GroupService) CreateGroup(g *models.Group, e string) error {
+	o := s.ormService.NewOrm()
+
+	user, err := s.userService.GetUserByEmail(e)
+
+	if err != nil {
+		return err
+	}
+
+	created, id, err := o.ReadOrCreate(g, "name")
+
+	if err != nil {
+		return err
+	}
+
+	if !created {
+		return ErrorGroupNameExists(g.Name)
+	}
+
+	g.Id = id
+	if err := s.AddMember(g.Id, user.Id, "Owner"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s GroupService) DeleteGroup(gid int64) error {
+	group, err := s.GetGroup(gid, nil)
+
+	if err != nil {
+		return err
+	}
 
 	o := s.ormService.NewOrm()
 
-	memb := models.GroupMember{Group: &group}
+	memb := models.GroupMember{Group: group}
 
 	// Remove all the user group relationships
 	if _, err := o.Delete(&memb, "group_id"); err != nil {
-		panic(err)
+		return err
 	}
 
 	if _, err := o.Delete(&group); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 type GetAllGroupsOptions struct {
 	Email string
 }
 
-func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) (groups []*models.Group) {
-	u := s.userService.GetUserByEmail(opts.Email)
+func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) ([]*models.Group, error) {
+	u, err := s.userService.GetUserByEmail(opts.Email)
+
+	if err != nil {
+		return nil, err
+	}
 
 	o := s.ormService.NewOrm()
 
@@ -95,7 +127,7 @@ func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) (groups []*models.G
 
 	// Grab the groups that the user has access to
 	if _, err := qs.All(&groupMs); err != nil && err != orm.ErrNoRows {
-		panic(err)
+		return nil, err
 	}
 
 	ids := make([]interface{}, len(groupMs))
@@ -107,24 +139,25 @@ func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) (groups []*models.G
 		QueryTable(new(models.Group)).
 		Filter("id__in", ids...)
 
+	var groups []*models.Group
 	if _, err := qs.All(&groups); err != nil && err != orm.ErrNoRows {
-		panic(err)
+		return nil, err
 	}
 
-	return
+	return groups, nil
 }
 
 type GetGroupOptions struct {
 	LoadRelated bool
 }
 
-func (s GroupService) GetGroup(gid int64, opts *GetGroupOptions) (g models.Group) {
+func (s GroupService) GetGroup(gid int64, opts *GetGroupOptions) (*models.Group, error) {
 	o := s.ormService.NewOrm()
-
-	g.Id = gid
+	g := models.Group{Id: gid}
 
 	if err := o.Read(&g); err == orm.ErrNoRows {
-		panic(ErroGroupIdNotFound(gid))
+		return nil, ErroGroupIdNotFound(gid)
+		// panic(ErroGroupIdNotFound(gid))
 	}
 
 	if opts != nil {
@@ -133,28 +166,34 @@ func (s GroupService) GetGroup(gid int64, opts *GetGroupOptions) (g models.Group
 		}
 	}
 
-	return
+	return &g, nil
 }
 
-func (s GroupService) GetGroupByName(n string) (g models.Group) {
+func (s GroupService) GetGroupByName(n string) (*models.Group, error) {
 	o := s.ormService.NewOrm()
 
-	g.Name = n
-
+	g := models.Group{Name: n}
 	if err := o.Read(&g, "name"); err == orm.ErrNoRows {
-		panic(ErroGroupNotFound(n))
+		return nil, ErroGroupNotFound(n)
 	}
 
 	s.loadMembers(&g)
 
-	return
+	return &g, nil
 }
 
-func (s GroupService) IsAllowed(g models.Group, u models.User, ro bool) bool {
+func (s GroupService) IsAllowed(g *models.Group, u *models.User, ro bool) bool {
+	var err error
+
+	// Check if they exist
 	if g.Id > 0 {
-		g = s.GetGroup(g.Id, nil)
+		_, err = s.GetGroup(g.Id, nil)
 	} else {
-		g = s.GetGroupByName(g.Name)
+		_, err = s.GetGroupByName(g.Name)
+	}
+
+	if err != nil {
+		return false
 	}
 
 	groupM := new(models.GroupMember)
@@ -186,25 +225,40 @@ func (s GroupService) loadMembers(g *models.Group) {
 		All(&g.Members)
 }
 
-func (s GroupService) RemoveMember(gid int64, uid int64) {
-	group := s.GetGroup(gid, nil)
+func (s GroupService) RemoveMember(gid int64, uid int64) error {
+	group, err := s.GetGroup(gid, nil)
+
+	if err != nil {
+		return err
+	}
 
 	user := models.User{Id: uid}
-	memb := models.GroupMember{User: &user, Group: &group}
+	memb := models.GroupMember{User: &user, Group: group}
 
-	s.ormService.NewOrm().Delete(&memb, "user_id")
+	if _, err := s.ormService.NewOrm().Delete(&memb, "user_id"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s GroupService) UpdateGroup(g models.Group) {
+func (s GroupService) UpdateGroup(g *models.Group) error {
 	if g.Name == "" {
 		panic(ErrorNothingToUpdate(g))
 	}
 
 	// Check if group actually exists
-	group := s.GetGroup(g.Id, nil)
+	group, err := s.GetGroup(g.Id, nil)
+
+	if err != nil {
+		return err
+	}
+
 	group.Name = g.Name
 
 	if _, err := s.ormService.NewOrm().Update(&group); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }

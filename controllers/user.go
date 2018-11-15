@@ -15,7 +15,7 @@ type UserController struct {
 }
 
 type ResponseCreateUser struct {
-	Data models.User
+	Data *models.User
 }
 
 // @Title CreateUser
@@ -23,13 +23,20 @@ type ResponseCreateUser struct {
 // @Param	body	body 	models.User	true	"Body for new user"
 // @Success 200 {object} controllers.ResponseCreateUser
 // @router / [post]
-func (c *UserController) Post() {
-	defer services.ServeJson(&c.Controller)
+func (c *UserController) CreateUser() {
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	var user models.User
 	json.Unmarshal(c.Ctx.Input.RequestBody, &user)
-	c.UserService.AddUser(&user)
-	c.Data["json"] = ResponseCreateUser{user}
+	err := c.UserService.AddUser(&user)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
+	c.Data["json"] = ResponseCreateUser{&user}
 }
 
 type ResponseGetAllUsers struct {
@@ -41,13 +48,21 @@ type ResponseGetAllUsers struct {
 // @Success 200 {object} controllers.ResponseGetAllUsers
 // @router / [get]
 func (c *UserController) GetAll() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
-	c.Data["json"] = ResponseGetAllUsers{c.UserService.GetAll()}
+	users, err := c.UserService.GetAll()
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
+	c.Data["json"] = ResponseGetAllUsers{users}
 }
 
 type ResponseGetUserByEmail struct {
-	Data models.User
+	Data *models.User
 }
 
 // @Title Get
@@ -56,10 +71,17 @@ type ResponseGetUserByEmail struct {
 // @Success 200 {object} controllers.ResponseGetUserByEmail
 // @router /:email [get]
 func (c *UserController) Get() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	email := c.GetString(":email")
-	user := c.UserService.GetUserByEmail(email)
+	user, err := c.UserService.GetUserByEmail(email)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetUserByEmail{user}
 }
 
@@ -78,16 +100,23 @@ type ResponseUpdateUser struct {
 // @Success 200 {object} controllers.ResponseUpdateUser
 // @router /:user_id [put]
 func (c *UserController) UpdateUser() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	var request RequestUpdateUser
 	json.Unmarshal(c.Ctx.Input.RequestBody, &request)
 
 	user_id, _ := c.GetInt64(":user_id")
-	c.UserService.UpdateUser(models.User{
+	err := c.UserService.UpdateUser(&models.User{
 		Id:   user_id,
 		Name: request.Name,
 	})
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseUpdateUser{"User updated successfully"}
 }
 
@@ -101,9 +130,16 @@ type ResponseDeleteUser struct {
 // @Success 200 {object} controllers.ResponseDeleteUser
 // @router /:user_id [delete]
 func (c *UserController) DeleteUser() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	user_id, _ := c.GetInt64(":user_id")
-	c.UserService.DeleteUser(user_id)
+	err := c.UserService.DeleteUser(user_id)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseDeleteUser{"User deleted successfully"}
 }

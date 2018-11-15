@@ -6,7 +6,7 @@ import (
 )
 
 type IEnvironmentService interface {
-	ListEnvironments() []*models.Environment
+	ListEnvironments() ([]*models.Environment, error)
 }
 
 type EnvironmentService struct {
@@ -29,12 +29,13 @@ func NewEnvironmentService() *EnvironmentService {
 	return &environmentService
 }
 
-func (s EnvironmentService) ListEnvironments() (result []*models.Environment) {
+func (s EnvironmentService) ListEnvironments() ([]*models.Environment, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.Environment))
 
+	var result []*models.Environment
 	if _, err := qs.All(&result); err != nil && err != orm.ErrNoRows {
-		panic(err)
+		return nil, err
 	}
 
-	return
+	return result, nil
 }

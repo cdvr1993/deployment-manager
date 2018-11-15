@@ -20,8 +20,15 @@ type ResponseGetAllProjects struct {
 // @Success 200 {object} controllers.ResponseGetAllProjects
 // @router / [get]
 func (c *ProjectController) GetAll() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
-	projects := c.ProjectService.ListProjects()
+	projects, err := c.ProjectService.ListProjects()
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetAllProjects{projects}
 }

@@ -17,14 +17,9 @@ type UserParserMiddleware struct {
 
 func (m UserParserMiddleware) GetHandler() beego.FilterFunc {
 	return func(c *context.Context) {
-		defer func() {
-			recover()
-		}()
+		u, _ := m.UserService.GetUserByEmail(c.Input.Header(EMAIL_HEADER))
 
-		c.Input.SetData(
-			USER_PARAM,
-			m.UserService.GetUserByEmail(c.Input.Header(EMAIL_HEADER)),
-		)
+		c.Input.SetData(USER_PARAM, u)
 	}
 }
 

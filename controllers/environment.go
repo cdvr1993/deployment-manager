@@ -20,8 +20,15 @@ type ResponseGetAllEnvironments struct {
 // @Success 200 {object} controllers.ResponseGetAllEnvironments
 // @router / [get]
 func (c *EnvironmentController) GetAll() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
-	environments := c.EnvironmentService.ListEnvironments()
+	environments, err := c.EnvironmentService.ListEnvironments()
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetAllEnvironments{environments}
 }

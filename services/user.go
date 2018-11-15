@@ -6,12 +6,12 @@ import (
 )
 
 type IUserService interface {
-	AddUser(*models.User)
-	GetAll() []*models.User
-	GetUser(int64) models.User
-	GetUserByEmail(string) models.User
-	DeleteUser(int64)
-	UpdateUser(models.User)
+	AddUser(*models.User) error
+	GetAll() ([]*models.User, error)
+	GetUser(int64) (*models.User, error)
+	GetUserByEmail(string) (*models.User, error)
+	DeleteUser(int64) error
+	UpdateUser(*models.User) error
 }
 
 type UserService struct {
@@ -28,68 +28,89 @@ func NewUserService() *UserService {
 	return &userService
 }
 
-func (s UserService) AddUser(u *models.User) {
+func (s UserService) AddUser(u *models.User) error {
 	o := s.ormService.NewOrm()
 
-	if created, id, err := o.ReadOrCreate(u, "email"); err == nil {
-		if created {
-			u.Id = id
-		} else {
-			panic(ErrorUserEmailExists(u.Email))
-		}
-	}
-}
+	created, id, err := o.ReadOrCreate(u, "email")
 
-func (s UserService) GetAll() (users []*models.User) {
-	qs := s.ormService.NewOrm().QueryTable(new(models.User))
-
-	if _, err := qs.All(&users); err != nil && err != orm.ErrNoRows {
-		panic(err)
+	if err != nil {
+		return err
 	}
 
-	return
-}
+	if !created {
+		return ErrorUserEmailExists(u.Email)
+	}
 
-func (s UserService) GetUser(id int64) (u models.User) {
 	u.Id = id
 
-	if err := s.ormService.NewOrm().Read(&u); err == orm.ErrNoRows {
-		panic(ErrorUserIdNotFound(id))
-	}
-
-	return
+	return nil
 }
 
-func (s UserService) GetUserByEmail(e string) (u models.User) {
-	u.Email = e
+func (s UserService) GetAll() ([]*models.User, error) {
+	qs := s.ormService.NewOrm().QueryTable(new(models.User))
+
+	var users []*models.User
+	if _, err := qs.All(&users); err != nil && err != orm.ErrNoRows {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (s UserService) GetUser(id int64) (*models.User, error) {
+	u := models.User{Id: id}
+
+	if err := s.ormService.NewOrm().Read(&u); err == orm.ErrNoRows {
+		return nil, ErrorUserIdNotFound(id)
+	}
+
+	return &u, nil
+}
+
+func (s UserService) GetUserByEmail(e string) (*models.User, error) {
+	u := models.User{Email: e}
 
 	if err := s.ormService.NewOrm().Read(&u, "email"); err == orm.ErrNoRows {
-		panic(ErrorUserNotFound(e))
+		return nil, ErrorUserNotFound(e)
 	}
 
-	return
+	return &u, nil
 }
 
-func (s UserService) DeleteUser(uid int64) {
-	user := s.GetUser(uid)
+func (s UserService) DeleteUser(uid int64) error {
+	user, err := s.GetUser(uid)
+
+	if err != nil {
+		return err
+	}
 
 	if _, err := s.ormService.NewOrm().Delete(&user); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func (s UserService) UpdateUser(u models.User) {
+func (s UserService) UpdateUser(u *models.User) error {
 	if u.Email != "" {
-		panic(ErrorUserCanNotEditEmail(u.Id, u.Email))
+		return ErrorUserCanNotEditEmail(u.Id, u.Email)
 	}
 
-	dbUser := s.GetUser(u.Id)
+	dbUser, err := s.GetUser(u.Id)
 
-	if u.Name != "" {
-		dbUser.Name = u.Name
-
-		if _, err := s.ormService.NewOrm().Update(&dbUser); err != nil {
-			panic(err)
-		}
+	if err != nil {
+		return err
 	}
+
+	if u.Name == "" {
+		return nil
+	}
+
+	dbUser.Name = u.Name
+
+	if _, err := s.ormService.NewOrm().Update(&dbUser); err != nil {
+		return err
+	}
+
+	return nil
 }

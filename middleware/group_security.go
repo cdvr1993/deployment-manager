@@ -24,7 +24,7 @@ func (m GroupSecurityMiddleware) GetHandler() beego.FilterFunc {
 		}
 
 		user := c.Input.GetData(USER_PARAM).(models.User)
-		if !m.GroupService.IsAllowed(group, user, c.Input.IsGet()) {
+		if !m.GroupService.IsAllowed(&group, &user, c.Input.IsGet()) {
 			panic("User not anuthorized")
 		}
 	}

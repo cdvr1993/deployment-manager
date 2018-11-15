@@ -20,8 +20,15 @@ type ResponseGetAllRoles struct {
 // @Success 200 {object} controllers.ResponseGetAllRoles
 // @router / [get]
 func (c *RoleController) GetAll() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
-	roles := c.RoleService.ListRoles()
+	roles, err := c.RoleService.ListRoles()
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetAllRoles{roles}
 }

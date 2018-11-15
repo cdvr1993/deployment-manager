@@ -6,7 +6,7 @@ import (
 )
 
 type IProjectService interface {
-	ListProjects() []*models.Project
+	ListProjects() ([]*models.Project, error)
 }
 
 type ProjectService struct {
@@ -27,12 +27,13 @@ func NewProjectService() *ProjectService {
 	return &projectService
 }
 
-func (s ProjectService) ListProjects() (result []*models.Project) {
+func (s ProjectService) ListProjects() ([]*models.Project, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.Project))
 
+	var result []*models.Project
 	if _, err := qs.All(&result); err != nil && err != orm.ErrNoRows {
-		panic(err)
+		return nil, err
 	}
 
-	return
+	return result, nil
 }

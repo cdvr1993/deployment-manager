@@ -6,8 +6,8 @@ import (
 )
 
 type IRoleService interface {
-	GetRole(string) models.Role
-	ListRoles() []*models.Role
+	GetRole(string) *models.Role
+	ListRoles() ([]*models.Role, error)
 }
 
 type RoleService struct {
@@ -24,24 +24,25 @@ func NewRoleService() *RoleService {
 	return &roleService
 }
 
-func (s RoleService) GetRole(name string) (role models.Role) {
+func (s RoleService) GetRole(name string) (role *models.Role) {
 	o := s.ormService.NewOrm()
 
 	role.Name = name
 
-	if err := o.Read(&role, "name"); err == orm.ErrNoRows {
+	if err := o.Read(role, "name"); err == orm.ErrNoRows {
 		panic(ErrorRoleNotFound(name))
 	}
 
 	return
 }
 
-func (s RoleService) ListRoles() (roles []*models.Role) {
+func (s RoleService) ListRoles() ([]*models.Role, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.Role))
 
+	var roles []*models.Role
 	if _, err := qs.All(&roles); err != nil && err != orm.ErrNoRows {
-		panic(err)
+		return nil, err
 	}
 
-	return
+	return roles, nil
 }

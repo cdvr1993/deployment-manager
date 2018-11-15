@@ -24,16 +24,23 @@ type ResponseGetAllGroups struct {
 // @Success 200 {object} controllers.ResponseGetAllGroups
 // @router / [get]
 func (c *GroupController) GetAll() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
-	groups := c.GroupService.GetAllGroups(services.GetAllGroupsOptions{
+	groups, err := c.GroupService.GetAllGroups(services.GetAllGroupsOptions{
 		Email: c.Ctx.Input.Header(middleware.EMAIL_HEADER),
 	})
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetAllGroups{groups}
 }
 
 type ResponseCreateGroup struct {
-	Data models.Group
+	Data *models.Group
 }
 
 // @Title Post
@@ -42,20 +49,27 @@ type ResponseCreateGroup struct {
 // @Success 200 {object} controllers.ResponseCreateGroup
 // @router / [post]
 func (c *GroupController) Post() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	var group models.Group
 	json.Unmarshal(c.Ctx.Input.RequestBody, &group)
 
-	c.GroupService.CreateGroup(
+	err := c.GroupService.CreateGroup(
 		&group,
 		c.Ctx.Input.Header(middleware.EMAIL_HEADER),
 	)
-	c.Data["json"] = ResponseCreateGroup{group}
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
+	c.Data["json"] = ResponseCreateGroup{&group}
 }
 
 type ResponseGetGroupByName struct {
-	Data models.Group
+	Data *models.Group
 }
 
 // @Title Get
@@ -65,10 +79,17 @@ type ResponseGetGroupByName struct {
 // @Success 200 {object} controllers.ResponseGetGroupByName
 // @router /:name [get]
 func (c *GroupController) Get() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	name := c.GetString(":name")
-	group := c.GroupService.GetGroupByName(name)
+	group, err := c.GroupService.GetGroupByName(name)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseGetGroupByName{group}
 }
 
@@ -84,13 +105,20 @@ type ResponseUpdateGroup struct {
 // @router /:group_id [put]
 // It helps on changing the name of the group without loosing user membership
 func (c *GroupController) UpdateGroup() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	var group models.Group
 	json.Unmarshal(c.Ctx.Input.RequestBody, &group)
 
 	group.Id, _ = c.GetInt64(":group_id")
-	c.GroupService.UpdateGroup(group)
+	err := c.GroupService.UpdateGroup(&group)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseUpdateGroup{
 		fmt.Sprintf("Group '%s' updated successfully", group.Name),
 	}
@@ -106,10 +134,17 @@ type ResponseDeleteGroup struct {
 // @Success 200 {object} controllers.ResponseDeleteGroup
 // @router /:group_id [delete]
 func (c *GroupController) DeleteGroup() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	groupId, _ := c.GetInt64(":group_id")
-	c.GroupService.DeleteGroup(groupId)
+	err := c.GroupService.DeleteGroup(groupId)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseUpdateGroup{"Group deleted successfully"}
 }
 
@@ -129,14 +164,21 @@ type ResponseAddMember struct {
 // @Success 200 {object} controllers.ResponseAddMember
 // @router /:group_id/member [post]
 func (c *GroupController) AddMember() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	var req RequestAddUser
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	groupId, _ := c.GetInt64(":group_id")
 
-	c.GroupService.AddMember(groupId, req.Id, req.Role)
+	err := c.GroupService.AddMember(groupId, req.Id, req.Role)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseAddMember{"Member added successfully"}
 }
 
@@ -151,11 +193,18 @@ type ResponseRemoveMember struct {
 // @Success 200 {object} controllers.ResponseAddMember
 // @router /:group_id/member/:member_id [delete]
 func (c *GroupController) RemoveMember() {
-	defer services.ServeJson(&c.Controller)
+	defer c.ServeJSON()
+	defer services.RecoverUnexpectedError(&c.Controller)
 
 	groupId, _ := c.GetInt64(":group_id")
 	member_id, _ := c.GetInt64(":member_id")
 
-	c.GroupService.RemoveMember(groupId, member_id)
+	err := c.GroupService.RemoveMember(groupId, member_id)
+
+	if err != nil {
+		c.Data["json"] = services.TransformError(err)
+		return
+	}
+
 	c.Data["json"] = ResponseRemoveMember{"Member removed successfully"}
 }
