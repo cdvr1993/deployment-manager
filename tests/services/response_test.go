@@ -29,8 +29,8 @@ func TestRecoverFromPanicPredefinedError(t *testing.T) {
 
 	routers.InitRouter(routers.ServiceManager{
 		UserService: services.NewUserServiceMock(services.UserServiceMethods{
-			GetUserByEmail: func(e string) models.User {
-				panic(err)
+			GetUserByEmail: func(e string) (*models.User, error) {
+				return nil, err
 			},
 		}),
 	})
@@ -68,7 +68,7 @@ func TestRecoverFromPanicUnknownError(t *testing.T) {
 	errorMsg := "Any error"
 	routers.InitRouter(routers.ServiceManager{
 		UserService: services.NewUserServiceMock(services.UserServiceMethods{
-			GetUserByEmail: func(e string) models.User {
+			GetUserByEmail: func(e string) (*models.User, error) {
 				panic(errors.New(errorMsg))
 			},
 		}),

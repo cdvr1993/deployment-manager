@@ -32,7 +32,7 @@ func NewEnvironmentService() *EnvironmentService {
 func (s EnvironmentService) ListEnvironments() ([]*models.Environment, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.Environment))
 
-	var result []*models.Environment
+	result := make([]*models.Environment, 0)
 	if _, err := qs.All(&result); err != nil && err != orm.ErrNoRows {
 		return nil, err
 	}

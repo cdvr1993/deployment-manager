@@ -26,7 +26,9 @@ func (c *EnvironmentController) GetAll() {
 	environments, err := c.EnvironmentService.ListEnvironments()
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 

@@ -49,7 +49,7 @@ func (s UserService) AddUser(u *models.User) error {
 func (s UserService) GetAll() ([]*models.User, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.User))
 
-	var users []*models.User
+	users := make([]*models.User, 0)
 	if _, err := qs.All(&users); err != nil && err != orm.ErrNoRows {
 		return nil, err
 	}

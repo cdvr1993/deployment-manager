@@ -26,7 +26,9 @@ func (c *RoleController) GetAll() {
 	roles, err := c.RoleService.ListRoles()
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 

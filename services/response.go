@@ -9,13 +9,13 @@ import (
 
 // Errors stores JSON Api error response
 type Errors struct {
-	Errors []string
+	Errors []string `json:"errors"`
 }
 
 // TransformError transforms error to JSON Api format
-func TransformError(err error) Errors {
+func TransformError(err error) (Errors, int) {
 	if svc, ok := err.(IServiceError); ok {
-		return Errors{[]string{svc.Error()}}
+		return Errors{[]string{svc.Error()}}, svc.Status()
 	}
 
 	panic(err)
@@ -34,7 +34,7 @@ func RecoverUnexpectedError(c *beego.Controller) {
 			u1String = "Unknown"
 		}
 
-		beego.Error(fmt.Sprintf("%s - %s", u1String, r))
+		beego.Error(fmt.Sprintf("%s - %+v", u1String, r))
 		c.Ctx.ResponseWriter.WriteHeader(500)
 		c.Data["json"] = map[string][]string{
 			"errors": []string{fmt.Sprintf("Transaction: '%s'", u1String)},

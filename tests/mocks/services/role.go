@@ -5,8 +5,8 @@ import (
 )
 
 type RoleServiceMethods struct {
-	GetRole   func(string) models.Role
-	ListRoles func() []*models.Role
+	GetRole   func(string) (*models.Role, error)
+	ListRoles func() ([]*models.Role, error)
 }
 
 type RoleService struct {
@@ -19,18 +19,18 @@ func NewRoleServiceMock(m RoleServiceMethods) (s RoleService) {
 	return
 }
 
-func (s RoleService) GetRole(name string) models.Role {
+func (s RoleService) GetRole(name string) (*models.Role, error) {
 	if s.methods.GetRole != nil {
 		return s.methods.GetRole(name)
 	}
 
-	return models.Role{}
+	panic(ErrNotImplemented)
 }
 
-func (s RoleService) ListRoles() []*models.Role {
+func (s RoleService) ListRoles() ([]*models.Role, error) {
 	if s.methods.ListRoles != nil {
 		return s.methods.ListRoles()
 	}
 
-	return nil
+	panic(ErrNotImplemented)
 }

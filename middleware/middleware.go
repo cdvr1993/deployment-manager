@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/astaxie/beego"
@@ -17,7 +18,7 @@ type IMiddleware interface {
 func recoverFromPanic(c *context.Context) {
 	// If middleware fails mark it as 'Access denied'
 	if r := recover(); r != nil {
-		beego.Error(r)
+		beego.Error(fmt.Sprintf("%+v", r))
 		c.ResponseWriter.WriteHeader(403)
 		c.Output.JSON(map[string][]string{"errors": []string{"Access denied"}}, false, false)
 	}

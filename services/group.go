@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/cdvr1993/deployment-manager/models"
 )
@@ -36,7 +37,11 @@ func NewGroupService() *GroupService {
 }
 
 func (s GroupService) AddMember(gid, uid int64, rName string) error {
-	role := s.roleService.GetRole(rName)
+	role, err := s.roleService.GetRole(rName)
+
+	if err != nil {
+		return err
+	}
 
 	user, err := s.userService.GetUser(uid)
 
@@ -110,24 +115,28 @@ func (s GroupService) DeleteGroup(gid int64) error {
 }
 
 type GetAllGroupsOptions struct {
-	Email string
+	User *models.User
 }
 
 func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) ([]*models.Group, error) {
-	u, err := s.userService.GetUserByEmail(opts.Email)
+	groups := make([]*models.Group, 0)
 
-	if err != nil {
-		return nil, err
+	if opts.User == nil {
+		return groups, nil
 	}
 
 	o := s.ormService.NewOrm()
 
 	var groupMs []*models.GroupMember
-	qs := o.QueryTable(new(models.GroupMember)).Filter("user_id", u.Id)
+	qs := o.QueryTable(new(models.GroupMember)).Filter("user_id", opts.User.Id)
 
 	// Grab the groups that the user has access to
 	if _, err := qs.All(&groupMs); err != nil && err != orm.ErrNoRows {
 		return nil, err
+	}
+
+	if len(groupMs) == 0 {
+		return groups, nil
 	}
 
 	ids := make([]interface{}, len(groupMs))
@@ -139,7 +148,6 @@ func (s GroupService) GetAllGroups(opts GetAllGroupsOptions) ([]*models.Group, e
 		QueryTable(new(models.Group)).
 		Filter("id__in", ids...)
 
-	var groups []*models.Group
 	if _, err := qs.All(&groups); err != nil && err != orm.ErrNoRows {
 		return nil, err
 	}
@@ -157,7 +165,6 @@ func (s GroupService) GetGroup(gid int64, opts *GetGroupOptions) (*models.Group,
 
 	if err := o.Read(&g); err == orm.ErrNoRows {
 		return nil, ErroGroupIdNotFound(gid)
-		// panic(ErroGroupIdNotFound(gid))
 	}
 
 	if opts != nil {
@@ -193,6 +200,7 @@ func (s GroupService) IsAllowed(g *models.Group, u *models.User, ro bool) bool {
 	}
 
 	if err != nil {
+		beego.Error(err)
 		return false
 	}
 
@@ -244,7 +252,7 @@ func (s GroupService) RemoveMember(gid int64, uid int64) error {
 
 func (s GroupService) UpdateGroup(g *models.Group) error {
 	if g.Name == "" {
-		panic(ErrorNothingToUpdate(g))
+		return ErrorNothingToUpdate(g)
 	}
 
 	// Check if group actually exists
@@ -256,7 +264,7 @@ func (s GroupService) UpdateGroup(g *models.Group) error {
 
 	group.Name = g.Name
 
-	if _, err := s.ormService.NewOrm().Update(&group); err != nil {
+	if _, err := s.ormService.NewOrm().Update(group); err != nil {
 		return err
 	}
 

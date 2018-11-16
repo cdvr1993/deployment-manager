@@ -44,30 +44,52 @@ func TestEndpointsAreWorking(t *testing.T) {
 
 	routers.InitRouter(routers.ServiceManager{
 		GroupService: services.NewGroupServiceMock(services.GroupServiceMethods{
-			CreateGroup: func(g *models.Group, e string) {
+			AddMember: func(int64, int64, string) error {
+				return nil
+			},
+			CreateGroup: func(g *models.Group, e string) error {
 				g.Id = group.Id
+
+				return nil
 			},
-			GetAllGroups: func(svcs.GetAllGroupsOptions) []*models.Group {
-				return []*models.Group{&group}
+			DeleteGroup: func(int64) error {
+				return nil
 			},
-			GetGroupByName: func(string) models.Group {
-				return group
+			GetAllGroups: func(svcs.GetAllGroupsOptions) ([]*models.Group, error) {
+				return []*models.Group{&group}, nil
+			},
+			GetGroupByName: func(string) (*models.Group, error) {
+				return &group, nil
+			},
+			RemoveMember: func(int64, int64) error {
+				return nil
+			},
+			UpdateGroup: func(*models.Group) error {
+				return nil
 			},
 		}),
 		RoleService: services.NewRoleServiceMock(services.RoleServiceMethods{
-			ListRoles: func() []*models.Role {
-				return []*models.Role{&role}
+			ListRoles: func() ([]*models.Role, error) {
+				return []*models.Role{&role}, nil
 			},
 		}),
 		UserService: services.NewUserServiceMock(services.UserServiceMethods{
-			AddUser: func(u *models.User) {
+			AddUser: func(u *models.User) error {
 				u.Id = user.Id
+
+				return nil
 			},
-			GetAll: func() []*models.User {
-				return []*models.User{&user}
+			DeleteUser: func(int64) error {
+				return nil
 			},
-			GetUserByEmail: func(e string) models.User {
-				return user
+			GetAll: func() ([]*models.User, error) {
+				return []*models.User{&user}, nil
+			},
+			GetUserByEmail: func(e string) (*models.User, error) {
+				return &user, nil
+			},
+			UpdateUser: func(*models.User) error {
+				return nil
 			},
 		}),
 	})
@@ -135,7 +157,7 @@ func TestEndpointsAreWorking(t *testing.T) {
 		MethodTester{
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/v1/group/%d/member/%d", group.Id, user.Id),
-			Result: "removed successfully",
+			Result: "Member removed successfully",
 		},
 		MethodTester{
 			Method: "GET",

@@ -32,7 +32,9 @@ func (c *UserController) CreateUser() {
 	err := c.UserService.AddUser(&user)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -54,7 +56,9 @@ func (c *UserController) GetAll() {
 	users, err := c.UserService.GetAll()
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -75,10 +79,13 @@ func (c *UserController) Get() {
 	defer services.RecoverUnexpectedError(&c.Controller)
 
 	email := c.GetString(":email")
+
 	user, err := c.UserService.GetUserByEmail(email)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -106,14 +113,16 @@ func (c *UserController) UpdateUser() {
 	var request RequestUpdateUser
 	json.Unmarshal(c.Ctx.Input.RequestBody, &request)
 
-	user_id, _ := c.GetInt64(":user_id")
+	userId, _ := c.GetInt64(":user_id")
 	err := c.UserService.UpdateUser(&models.User{
-		Id:   user_id,
+		Id:   userId,
 		Name: request.Name,
 	})
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -133,11 +142,13 @@ func (c *UserController) DeleteUser() {
 	defer c.ServeJSON()
 	defer services.RecoverUnexpectedError(&c.Controller)
 
-	user_id, _ := c.GetInt64(":user_id")
-	err := c.UserService.DeleteUser(user_id)
+	userId, _ := c.GetInt64(":user_id")
+	err := c.UserService.DeleteUser(userId)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 

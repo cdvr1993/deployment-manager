@@ -22,10 +22,15 @@ func (m GroupSecurityMiddleware) GetHandler() beego.FilterFunc {
 		if groupId, err := strconv.ParseInt(group.Name, 10, 64); err == nil {
 			group.Id = groupId
 		}
+		user := c.Input.GetData(USER_PARAM).(*models.User)
 
-		user := c.Input.GetData(USER_PARAM).(models.User)
-		if !m.GroupService.IsAllowed(&group, &user, c.Input.IsGet()) {
-			panic("User not anuthorized")
+		errMsg := "User not authorized"
+		if user == nil {
+			panic(errMsg)
+		}
+
+		if !m.GroupService.IsAllowed(&group, user, c.Input.IsGet()) {
+			panic(errMsg)
 		}
 	}
 }

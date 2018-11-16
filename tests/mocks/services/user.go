@@ -5,12 +5,12 @@ import (
 )
 
 type UserServiceMethods struct {
-	AddUser        func(*models.User)
-	GetAll         func() []*models.User
-	GetUser        func(int64) models.User
-	GetUserByEmail func(string) models.User
-	DeleteUser     func(int64)
-	UpdateUser     func(models.User)
+	AddUser        func(*models.User) error
+	GetAll         func() ([]*models.User, error)
+	GetUser        func(int64) (*models.User, error)
+	GetUserByEmail func(string) (*models.User, error)
+	DeleteUser     func(int64) error
+	UpdateUser     func(*models.User) error
 }
 type UserService struct {
 	methods UserServiceMethods
@@ -22,30 +22,50 @@ func NewUserServiceMock(m UserServiceMethods) (s UserService) {
 	return
 }
 
-func (s UserService) AddUser(u *models.User) {
-	s.methods.AddUser(u)
+func (s UserService) AddUser(u *models.User) error {
+	if s.methods.AddUser != nil {
+		return s.methods.AddUser(u)
+	}
+
+	panic(ErrNotImplemented)
 }
 
-func (s UserService) GetAll() []*models.User {
-	return s.methods.GetAll()
+func (s UserService) GetAll() ([]*models.User, error) {
+	if s.methods.GetAll != nil {
+		return s.methods.GetAll()
+	}
+
+	panic(ErrNotImplemented)
 }
 
-func (s UserService) GetUser(id int64) models.User {
-	return s.methods.GetUser(id)
+func (s UserService) GetUser(id int64) (*models.User, error) {
+	if s.methods.GetUser != nil {
+		return s.methods.GetUser(id)
+	}
+
+	panic(ErrNotImplemented)
 }
 
-func (s UserService) GetUserByEmail(e string) models.User {
-	return s.methods.GetUserByEmail(e)
+func (s UserService) GetUserByEmail(e string) (*models.User, error) {
+	if s.methods.GetUserByEmail != nil {
+		return s.methods.GetUserByEmail(e)
+	}
+
+	panic(ErrNotImplemented)
 }
 
-func (s UserService) DeleteUser(id int64) {
+func (s UserService) DeleteUser(id int64) error {
 	if s.methods.DeleteUser != nil {
-		s.methods.DeleteUser(id)
+		return s.methods.DeleteUser(id)
 	}
+
+	panic(ErrNotImplemented)
 }
 
-func (s UserService) UpdateUser(u models.User) {
+func (s UserService) UpdateUser(u *models.User) error {
 	if s.methods.UpdateUser != nil {
-		s.methods.UpdateUser(u)
+		return s.methods.UpdateUser(u)
 	}
+
+	panic(ErrNotImplemented)
 }

@@ -30,7 +30,7 @@ func NewProjectService() *ProjectService {
 func (s ProjectService) ListProjects() ([]*models.Project, error) {
 	qs := s.ormService.NewOrm().QueryTable(new(models.Project))
 
-	var result []*models.Project
+	result := make([]*models.Project, 0)
 	if _, err := qs.All(&result); err != nil && err != orm.ErrNoRows {
 		return nil, err
 	}

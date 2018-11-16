@@ -29,13 +29,14 @@ type ServiceManager struct {
 // @LicenseUrl https://opensource.org/licenses/MIT
 func InitRouter(m ServiceManager) {
 	ns := beego.NewNamespace("/v1",
-		beego.NSNamespace("/environment",
-			beego.NSInclude(
-				&controllers.EnvironmentController{
-					EnvironmentService: m.EnvironmentService,
-				},
-			),
-		),
+		// Environment is going to be under project
+		// beego.NSNamespace("/environment",
+		// 	beego.NSInclude(
+		// 		&controllers.EnvironmentController{
+		// 			EnvironmentService: m.EnvironmentService,
+		// 		},
+		// 	),
+		// ),
 		beego.NSNamespace("/group",
 			beego.NSInclude(
 				&controllers.GroupController{

@@ -27,12 +27,16 @@ func (c *GroupController) GetAll() {
 	defer c.ServeJSON()
 	defer services.RecoverUnexpectedError(&c.Controller)
 
+	// Ignore error
+	user, _ := c.Ctx.Input.GetData(middleware.USER_PARAM).(*models.User)
 	groups, err := c.GroupService.GetAllGroups(services.GetAllGroupsOptions{
-		Email: c.Ctx.Input.Header(middleware.EMAIL_HEADER),
+		User: user,
 	})
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -61,7 +65,9 @@ func (c *GroupController) Post() {
 	)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -86,7 +92,9 @@ func (c *GroupController) Get() {
 	group, err := c.GroupService.GetGroupByName(name)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -115,7 +123,9 @@ func (c *GroupController) UpdateGroup() {
 	err := c.GroupService.UpdateGroup(&group)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -141,7 +151,9 @@ func (c *GroupController) DeleteGroup() {
 	err := c.GroupService.DeleteGroup(groupId)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -175,7 +187,9 @@ func (c *GroupController) AddMember() {
 	err := c.GroupService.AddMember(groupId, req.Id, req.Role)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
@@ -202,7 +216,9 @@ func (c *GroupController) RemoveMember() {
 	err := c.GroupService.RemoveMember(groupId, member_id)
 
 	if err != nil {
-		c.Data["json"] = services.TransformError(err)
+		resp, status := services.TransformError(err)
+		c.Data["json"] = resp
+		c.Ctx.ResponseWriter.WriteHeader(status)
 		return
 	}
 
